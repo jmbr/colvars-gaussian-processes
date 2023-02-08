@@ -1,0 +1,93 @@
+structure           alanine-dipeptide.psf
+coordinates         alanine-dipeptide.pdb
+
+set inputname       input
+set temperature     300
+temperature         $temperature
+binCoordinates      input.coor
+seed                23996
+
+paraTypeCharmm	    on
+parameters          tip3.inp
+parameters          par_all36_prot.prm
+
+cellBasisVector1    21.80700016 0 0
+cellBasisVector2    0 21.70000076 0
+cellBasisVector3    0 0 21.78299999
+cellOrigin          0.05077723041176796 -0.3067566454410553 -0.02382202260196209
+wrapWater           on
+wrapAll             off
+
+exclude             scaled1-4
+1-4scaling          1
+cutoff              10
+switching           on
+switchdist          9
+pairlistdist        12
+
+timestep            2
+rigidBonds          all
+nonbondedFreq       1
+fullElectFrequency  2
+stepspercycle       10
+
+PME                 yes
+PMEGridSpacing      1.0
+FFTWUseWisdom       yes
+FFTWWisdomFile      /tmp/FFTW_NAMD.txt
+
+langevin            on
+langevinDamping     1
+langevinTemp        $temperature
+langevinHydrogen    off
+
+set outputname      output
+outputName          output
+
+restartsave         yes
+dcdFreq             100
+outputEnergies      1000
+
+source gaussian_process_parameters.tcl
+source ../gaussian_process.tcl
+
+set config "
+colvarsTrajFrequency 1
+"
+
+set atomNumbers { 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 }
+set num_components [array size gaussian_process::coefficients]
+set num_conformations 1000
+append config "
+colvar {
+    name dm
+"
+    for {set i 1} {$i <= $num_conformations} {incr i} {
+	append config "
+    rmsd {
+        atoms { atomNumbers { $atomNumbers } }
+        refPositionsFile reference-conformations/reference_$i.xyz
+    }
+"
+    }
+    append config "
+    scriptedFunction gaussian_process
+    scriptedFunctionType vector
+    scriptedFunctionVectorSize $num_components
+}
+
+harmonic {
+    name bias
+    colvars dm
+    forceConstant 1000000000.0
+    centers (3.4193003e-05, 2.4556162e-05, 0.00021957104)
+}
+"
+
+puts $config
+
+colvars on
+cv config $config
+
+reinitvels $temperature
+run 100

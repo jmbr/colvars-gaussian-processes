@@ -1,0 +1,22 @@
+#+TITLE: Biasing molecular simulations with Gaussian processes using NAMD and Colvars
+#+AUTHOR: Juan M. Bello-Rivas
+#+DATE: <2023-02-07 Tue>
+#+OPTIONS: tex:t
+
+This is a TCL script for evaluating Gaussian processes in the context of molecular simulations using NAMD [1] and Colvars [2].
+
+By the representer theorem [3], we know that a Gaussian process with radial basis function kernels is of the form:
+$$f(x)
+=
+\sum_{i = 1}^N \alpha_i \, \exp\left\{ -\frac{d(x, x_i)^2}{2 \varepsilon^2} \right\},$$
+for some $\alpha_i \in \mathbb{R}$ and $\varepsilon > 0$. In the case of molecular simulations, it makes sense to take the function $d(x, y)$ as the root mean square deviation (RMSD) between molecular conformations, which is obtained by finding the optimal rigid body motion that maps $x$ to $y$.
+
+The included file [[file:gaussian_process.tcl]] implements the evaluation of a Gaussian process and its Jacobian matrix to bias simulations. The user only has to provide the values of $\varepsilon$ and $\alpha_i$ for $i = 1, \dotsc, N$. An example of its use can be found in [[file:example-namd/]].
+
+[1] J. C. Phillips et al., “Scalable molecular dynamics on CPU and GPU architectures with NAMD,” J. Chem. Phys., vol. 153, no. 4, p. 044130, Jul. 2020, doi: 10.1063/5.0014475.
+
+
+[2] G. Fiorin, M. L. Klein, and J. Hénin, “Using collective variables to drive molecular dynamics simulations,” Molecular Physics, vol. 111, no. 22–23, pp. 3345–3362, Dec. 2013, doi: 10.1080/00268976.2013.813594.
+
+
+[3] T. Hofmann, B. Schölkopf, and A. J. Smola, “Kernel methods in machine learning,” Annals of Statistics, vol. 36, no. 3, pp. 1171–1220, 2008, doi: 10.1214/009053607000000677.
